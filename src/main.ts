@@ -11,8 +11,8 @@ function main() {
         return;
     }
 
-    const vertShaderSrc: string = require("./shader.vert");
-    const fragShaderSrc: string = require("./shader.frag");
+    const vertShaderSrc: string = require("./shaders/shader.vert");
+    const fragShaderSrc: string = require("./shaders/shader.frag");
 
     const vertShader = createShader(gl, gl.VERTEX_SHADER, vertShaderSrc);
     const fragShader = createShader(gl, gl.FRAGMENT_SHADER, fragShaderSrc);

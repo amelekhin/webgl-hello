@@ -1,20 +1,19 @@
 import * as merge from "webpack-merge";
 import common from "./env/common";
 
-function getConfig(env: string = "development") {
+function getConfig() {
+    const env = process.env.NODE_ENV || "development";
     let envConfig = null;
     
     switch (env) {
-        case "development":
-            envConfig = require("./env/debug").default;
-            break;
-
         case "production":
             envConfig = require("./env/release").default;
             break;
 
+        case "development":
         default:
-            throw new Error("Invalid env type");
+            envConfig = require("./env/debug").default;
+            break;
     }
 
     return merge.smart(common, envConfig);

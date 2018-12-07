@@ -39,7 +39,7 @@ export default {
         new webpack.HashedModuleIdsPlugin(),
 
         new HtmlWebpackPlugin({
-            template: resolve(appPath, "src/index.html"),
+            template: resolve(appPath, "src/resources/index.html"),
             minify: {
                 collapseWhitespace: true
             }
