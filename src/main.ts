@@ -1,110 +1,155 @@
 import { createShader, createProgram, updateCanvasSize } from "./utils";
 
-function setGeometry(gl: WebGL2RenderingContext, x: number, y: number) {
-    gl.bufferData(
-        gl.ARRAY_BUFFER,
-        new Float32Array([
-        // Left column
-          0, 0,
-          30, 0,
-          0, 150,
-          0, 150,
-          30, 0,
-          30, 150,
- 
-          // Top rung
-          30, 0,
-          100, 0,
-          30, 30,
-          30, 30,
-          100, 0,
-          100, 30,
- 
-          // Middle rung
-          30, 60,
-          67, 60,
-          30, 90,
-          30, 90,
-          67, 60,
-          67, 90
-        ]),
-        gl.STATIC_DRAW
-    );
+function setGeometry(gl: WebGL2RenderingContext, verts: number[], x: number, y: number) {
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
 }
 
 function main() {
+    // Initialize canvas
     const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+
+    // Set default canvas size to full screen
     updateCanvasSize(canvas);
 
-    const gl = canvas.getContext("webgl2") as WebGL2RenderingContext | null;
+    // Initialize gl context
+    const gl = canvas.getContext("webgl2") as WebGL2RenderingContext | null;    
     
     if (gl === null) {
         alert("WebGL2 is not supported by this browser");
         return;
     }
 
+    // Load shaders' sources
     const vertShaderSrc: string = require("./shaders/shader.vert");
     const fragShaderSrc: string = require("./shaders/shader.frag");
 
+    // Create shaders and program
     const vertShader  = createShader(gl, gl.VERTEX_SHADER, vertShaderSrc);
     const fragShader  = createShader(gl, gl.FRAGMENT_SHADER, fragShaderSrc);
     const program     = createProgram(gl, vertShader, fragShader);
 
+    // Get the location of a_position attribute
     const posAttrLocation = gl.getAttribLocation(program, "a_position");
-    const posBuffer = gl.createBuffer();
 
+    // Create a buffer and bind it as ARRAY_BUFFER
+    const posBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
 
+    // Create vertex array object and bind it
     const vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
+
+    // Bind VAO to position attribute
     gl.enableVertexAttribArray(posAttrLocation);
+
+    // Define how to pull data from VAO
     gl.vertexAttribPointer(posAttrLocation, 2, gl.FLOAT, false, 0, 0);
 
+    // Update viewport size
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+    // Set clear color
     gl.clearColor(0, 0, 0, 1);
+
+    // Tell GL to use the program
     gl.useProgram(program);
 
-    const resUniformLocation = gl.getUniformLocation(program, "u_resolution");
-    gl.uniform2f(resUniformLocation, gl.canvas.width, gl.canvas.height);
+    // Get location of resolution uniform, put data to it
+    const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+    const resolution = [gl.canvas.width, gl.canvas.height];
+    gl.uniform2fv(resolutionLocation, resolution);
 
-    const translationUniformLocation = gl.getUniformLocation(program, "u_translation");
-    const colorUniformLocation = gl.getUniformLocation(program, "u_color");
-
-    const translation = [0, 0];
+    // Put random color in color uniform
+    const colorLocation = gl.getUniformLocation(program, "u_color");
     const color = [Math.random(), Math.random(), Math.random(), 1];
+    gl.uniform4fv(colorLocation, color);
+
+    // Get the location of translation uniform, create an array for storing translation data
+    const translationLocation = gl.getUniformLocation(program, "u_translation");
+    const translation = [0, 0];
+
+    // Get the location of rotation uniform, create an array for storing rotation data
+    const rotationLocation = gl.getUniformLocation(program, "u_rotation");
+    const rotation = [0, 1]; // Sin and Cos of angle
+    let angle = 0;
+
+    // Load vertices of the geometry    
+    const geometryVerts = require("./data/f-letter-verts").default;
+
+    // Pass geometry coords to vertex shader through the array buffer
+    setGeometry(gl, geometryVerts, 0, 0);
 
     const draw = () => {
+        // Clear the screen
         gl.clear(gl.COLOR_BUFFER_BIT);
-        setGeometry(gl, translation[0], translation[1]);
-        gl.uniform2fv(translationUniformLocation, translation);
-        gl.uniform4fv(colorUniformLocation, color);
-        gl.drawArrays(gl.TRIANGLES, 0, 18);
+
+        // Pass translation data to vertex shader
+        gl.uniform2fv(translationLocation, translation);
+
+        // Pass rotation data to vertex shader
+        gl.uniform2fv(rotationLocation, rotation);
+
+        // Draw everything
+        gl.drawArrays(gl.TRIANGLES, 0, geometryVerts.length / 2);
     };
 
     window.addEventListener('keydown', (e) => {
-        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
+        if (
+            e.key !== 'ArrowDown'  && 
+            e.key !== 'ArrowUp'    && 
+            e.key !== 'ArrowLeft'  && 
+            e.key !== 'ArrowRight'
+        ) {
             return;
         }
 
-        const diff = 2;
+        if (e.ctrlKey) {
+            const diff = 10;
 
-        if (e.key === 'ArrowUp') {
-            translation[1] -= diff;
-        }
+            if (e.key === 'ArrowLeft') {
+                angle += diff;
+            }
+    
+            if (e.key === 'ArrowRight') {
+                angle -= diff;
+            }
 
-        if (e.key === 'ArrowDown') {
-            translation[1] += diff;
-        }
+            rotation[0] = Math.sin(angle * Math.PI / 180);
+            rotation[1] = Math.cos(angle * Math.PI / 180);
+        } 
+        
+        else {
+            const diff = 20;
 
-        if (e.key === 'ArrowLeft') {
-            translation[0] -= diff;
-        }
-
-        if (e.key === 'ArrowRight') {
-            translation[0] += diff;
+            if (e.key === 'ArrowUp') {
+                translation[1] -= diff;
+            }
+    
+            if (e.key === 'ArrowDown') {
+                translation[1] += diff;
+            }
+    
+            if (e.key === 'ArrowLeft') {
+                translation[0] -= diff;
+            }
+    
+            if (e.key === 'ArrowRight') {
+                translation[0] += diff;
+            }
         }
 
         draw();
+    });
+
+    window.addEventListener("resize", () => {
+        updateCanvasSize(canvas);       
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+        const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+        const resolution = [gl.canvas.width, gl.canvas.height];
+        gl.uniform2fv(resolutionLocation, resolution);
+
+        draw(); 
     });
 
     draw();
