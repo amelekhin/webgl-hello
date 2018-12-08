@@ -35,9 +35,11 @@ function main() {
     const posBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
 
-    // Create vertex array object and bind it
-    const vao = gl.createVertexArray();
-    gl.bindVertexArray(vao);
+    // Load vertices of the geometry    
+    const geometryVerts = require("./data/f-letter-verts").default;
+
+    // Pass geometry coords to vertex shader through the array buffer
+    setGeometry(gl, geometryVerts, 0, 0);
 
     // Bind VAO to position attribute
     gl.enableVertexAttribArray(posAttrLocation);
@@ -73,11 +75,9 @@ function main() {
     const rotation = [0, 1]; // Sin and Cos of angle
     let angle = 0;
 
-    // Load vertices of the geometry    
-    const geometryVerts = require("./data/f-letter-verts").default;
-
-    // Pass geometry coords to vertex shader through the array buffer
-    setGeometry(gl, geometryVerts, 0, 0);
+    // Get the location of scale uniform, create an array for storing scale data
+    const scaleLocation = gl.getUniformLocation(program, "u_scale");
+    const scale = [1, 1];
 
     const draw = () => {
         // Clear the screen
@@ -88,6 +88,9 @@ function main() {
 
         // Pass rotation data to vertex shader
         gl.uniform2fv(rotationLocation, rotation);
+
+        // Pass scale data to vertex shader
+        gl.uniform2fv(scaleLocation, scale);
 
         // Draw everything
         gl.drawArrays(gl.TRIANGLES, 0, geometryVerts.length / 2);
@@ -103,7 +106,27 @@ function main() {
             return;
         }
 
-        if (e.ctrlKey) {
+        if (e.shiftKey) {
+            const diff = 0.1;
+
+            if (e.key === 'ArrowUp') {
+                scale[1] += diff;
+            }
+    
+            if (e.key === 'ArrowDown') {
+                scale[1] -= diff;
+            }
+                
+            if (e.key === 'ArrowLeft') {
+                scale[0] -= diff;
+            }
+    
+            if (e.key === 'ArrowRight') {
+                scale[0] += diff;
+            }
+        }
+
+        else if (e.ctrlKey) {
             const diff = 10;
 
             if (e.key === 'ArrowLeft') {
