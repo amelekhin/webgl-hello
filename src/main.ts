@@ -1,23 +1,35 @@
 import { createShader, createProgram, updateCanvasSize } from "./utils";
 
-function randomInt(range: number) {
-    return Math.floor(Math.random() * range);
-}
-
-function setRectangle(gl: WebGL2RenderingContext, x: number, y: number, width: number, height: number) {
-    const x1 = x;
-    const x2 = x + width;
-    const y1 = y;
-    const y2 = y + height;
-
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-        x1, y1,
-        x2, y1,
-        x1, y2,
-        x1, y2,
-        x2, y1,
-        x2, y2
-    ]), gl.STATIC_DRAW);
+function setGeometry(gl: WebGL2RenderingContext, x: number, y: number) {
+    gl.bufferData(
+        gl.ARRAY_BUFFER,
+        new Float32Array([
+        // Left column
+          0, 0,
+          30, 0,
+          0, 150,
+          0, 150,
+          30, 0,
+          30, 150,
+ 
+          // Top rung
+          30, 0,
+          100, 0,
+          30, 30,
+          30, 30,
+          100, 0,
+          100, 30,
+ 
+          // Middle rung
+          30, 60,
+          67, 60,
+          30, 90,
+          30, 90,
+          67, 60,
+          67, 90
+        ]),
+        gl.STATIC_DRAW
+    );
 }
 
 function main() {
@@ -50,19 +62,52 @@ function main() {
 
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(0, 0, 0, 1);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    
     gl.useProgram(program);
+
     const resUniformLocation = gl.getUniformLocation(program, "u_resolution");
     gl.uniform2f(resUniformLocation, gl.canvas.width, gl.canvas.height);
 
+    const translationUniformLocation = gl.getUniformLocation(program, "u_translation");
     const colorUniformLocation = gl.getUniformLocation(program, "u_color");
 
-    for (let i = 0; i < 50; i++) {
-        setRectangle(gl, randomInt(300), randomInt(300), randomInt(300), randomInt(300));
-        gl.uniform4f(colorUniformLocation, Math.random(), Math.random(), Math.random(), 1);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
-    }
+    const translation = [0, 0];
+    const color = [Math.random(), Math.random(), Math.random(), 1];
+
+    const draw = () => {
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        setGeometry(gl, translation[0], translation[1]);
+        gl.uniform2fv(translationUniformLocation, translation);
+        gl.uniform4fv(colorUniformLocation, color);
+        gl.drawArrays(gl.TRIANGLES, 0, 18);
+    };
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
+            return;
+        }
+
+        const diff = 2;
+
+        if (e.key === 'ArrowUp') {
+            translation[1] -= diff;
+        }
+
+        if (e.key === 'ArrowDown') {
+            translation[1] += diff;
+        }
+
+        if (e.key === 'ArrowLeft') {
+            translation[0] -= diff;
+        }
+
+        if (e.key === 'ArrowRight') {
+            translation[0] += diff;
+        }
+
+        draw();
+    });
+
+    draw();
 }
 
 main();
