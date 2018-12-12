@@ -1,4 +1,4 @@
-import { createShader, createProgram, updateCanvasSize } from "./utils";
+import { createShader, createProgram, updateCanvasSize, M3 } from "./utils";
 
 function setGeometry(gl: WebGL2RenderingContext, verts: number[], x: number, y: number) {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
@@ -66,31 +66,24 @@ function main() {
     const color = [Math.random(), Math.random(), Math.random(), 1];
     gl.uniform4fv(colorLocation, color);
 
-    // Get the location of translation uniform, create an array for storing translation data
-    const translationLocation = gl.getUniformLocation(program, "u_translation");
-    const translation = [0, 0];
+    let translation = [0, 0];
+    let scale = [1, 1];
+    let angleRads = 0;
 
-    // Get the location of rotation uniform, create an array for storing rotation data
-    const rotationLocation = gl.getUniformLocation(program, "u_rotation");
-    const rotation = [0, 1]; // Sin and Cos of angle
-    let angle = 0;
-
-    // Get the location of scale uniform, create an array for storing scale data
-    const scaleLocation = gl.getUniformLocation(program, "u_scale");
-    const scale = [1, 1];
+    const matLocation = gl.getUniformLocation(program, "u_matrix");
 
     const draw = () => {
+        const tMat = M3.translate(translation[0], translation[1]);
+        const rMat = M3.rotate(angleRads);
+        const sMat = M3.scale(scale[0], scale[1]);
+
+        const m = M3.multiply(tMat, rMat, sMat);
+
         // Clear the screen
         gl.clear(gl.COLOR_BUFFER_BIT);
 
-        // Pass translation data to vertex shader
-        gl.uniform2fv(translationLocation, translation);
-
-        // Pass rotation data to vertex shader
-        gl.uniform2fv(rotationLocation, rotation);
-
-        // Pass scale data to vertex shader
-        gl.uniform2fv(scaleLocation, scale);
+        // Apply transformations
+        gl.uniformMatrix3fv(matLocation, false, m);
 
         // Draw everything
         gl.drawArrays(gl.TRIANGLES, 0, geometryVerts.length / 2);
@@ -126,19 +119,17 @@ function main() {
             }
         }
 
-        else if (e.ctrlKey) {
-            const diff = 10;
+        else if (e.ctrlKey || e.metaKey) {
+            const diffDegrees = 5;
+            const diffRads = diffDegrees * Math.PI / 180;
 
             if (e.key === 'ArrowLeft') {
-                angle += diff;
+                angleRads += diffRads;
             }
     
             if (e.key === 'ArrowRight') {
-                angle -= diff;
+                angleRads -= diffRads;
             }
-
-            rotation[0] = Math.sin(angle * Math.PI / 180);
-            rotation[1] = Math.cos(angle * Math.PI / 180);
         } 
         
         else {
