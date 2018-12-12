@@ -73,17 +73,17 @@ function main() {
     const matLocation = gl.getUniformLocation(program, "u_matrix");
 
     const draw = () => {
+        const pMat = M3.project(gl.canvas.width, gl.canvas.height);
         const tMat = M3.translate(translation[0], translation[1]);
         const rMat = M3.rotate(angleRads);
         const sMat = M3.scale(scale[0], scale[1]);
-
-        const m = M3.multiply(tMat, rMat, sMat);
-
-        // Clear the screen
-        gl.clear(gl.COLOR_BUFFER_BIT);
+        const m    = M3.multiply(pMat, tMat, rMat, sMat);
 
         // Apply transformations
         gl.uniformMatrix3fv(matLocation, false, m);
+
+        // Clear screen
+        gl.clear(gl.COLOR_BUFFER_BIT);
 
         // Draw everything
         gl.drawArrays(gl.TRIANGLES, 0, geometryVerts.length / 2);

@@ -67,6 +67,22 @@ export class M3 {
         ];
     }
 
+    public static identity(): number[] {
+        return [
+            1, 0, 0,
+            0, 1, 0,
+            0, 1, 1
+        ];
+    }
+
+    public static project(width: number, height: number) {
+        return [
+            2 / width, 0, 0,
+            0, -2 / height, 0,
+            -1, 1, 1,
+        ];
+    }
+
     private static mul(a: number[], b: number[]) {
         const a00 = a[0 * 3 + 0];
         const a01 = a[0 * 3 + 1];
@@ -103,7 +119,8 @@ export class M3 {
     public static multiply(...matrices: number[][]) {
         let newMat = matrices[0];
 
-        for (let i = 1; i < matrices.length; i++) {
+        const len = matrices.length;
+        for (let i = 1; i < len; i++) {
             newMat = M3.mul(newMat, matrices[i]);
         }
 
