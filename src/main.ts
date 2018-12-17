@@ -1,65 +1,61 @@
-import { createShader, createProgram, updateCanvasSize, setColors, setGeometry, M4 } from "./utils";
+import { createShader, createProgram, updateCanvasSize, M4 } from "./utils";
 
 function main() {
     // Initialize canvas
     const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 
-    // Set default canvas size to full screen
-    updateCanvasSize(canvas);
-
     // Initialize gl context
-    const gl = canvas.getContext("webgl2") as WebGL2RenderingContext | null;
+    const gl = canvas.getContext("webgl2");
 
     if (gl === null) {
         alert("WebGL2 is not supported by this browser");
         return;
     }
 
-    // Load shaders' sources
+    // Create vertex shader
     const vertShaderSrc: string = require("./shaders/shader.vert");
-    const fragShaderSrc: string = require("./shaders/shader.frag");
-
-    // Create shaders and program
     const vertShader = createShader(gl, gl.VERTEX_SHADER, vertShaderSrc);
+
+    // Create fragment shader
+    const fragShaderSrc: string = require("./shaders/shader.frag");
     const fragShader = createShader(gl, gl.FRAGMENT_SHADER, fragShaderSrc);
+
+    // Create program
     const program = createProgram(gl, vertShader, fragShader);
 
-    // Get the location of a_position attribute
-    const posAttrLocation = gl.getAttribLocation(program, "a_position");
+    // Delete vertex shader
+    gl.detachShader(program, vertShader);
+    gl.deleteShader(vertShader);
 
-    // Create a buffer and bind it as ARRAY_BUFFER
-    const posBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+    // Delete fragment shader
+    gl.detachShader(program, fragShader);
+    gl.deleteShader(fragShader);
 
-    // Load vertices of the geometry    
-    const geometryVerts = require("./data/f-letter-verts").default;
-
-    // Bind VAO to position attribute
-    gl.enableVertexAttribArray(posAttrLocation);
-
-    // Define how to pull data from pos buffer
-    gl.vertexAttribPointer(posAttrLocation, 3, gl.FLOAT, false, 0, 0);
-
-    // Pass geometry coords to vertex shader through the array buffer
-    setGeometry(gl, geometryVerts, 0, 0);
-
-    const colors = require("./data/f-letter-colors").default;
-    const colorBuffer = gl.createBuffer();
+    const positionLocation = gl.getAttribLocation(program, "a_position");
     const colorLocation = gl.getAttribLocation(program, "a_color");
 
-    // Bind color buffer
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    // Define VAO
+    const vao = gl.createVertexArray();
+    gl.bindVertexArray(vao);
 
-    // Define how to pull data out from color buffer
+    // Pass positions data
+    const positions = require("./data/f-letter-verts").default;
+    const positionsBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionsBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(positionLocation);
+    gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+
+    // Pass colors data
+    const colors = require("./data/f-letter-colors").default;
+    const colorsBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorsBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(colors), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(colorLocation);
     gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
 
-    // Put data into buffer
-    setColors(gl, colors);
-    
-    gl.enableVertexAttribArray(colorLocation);
-
-    // Update viewport size
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    // Set default canvas size to full screen
+    updateCanvasSize(gl);
 
     // Set clear color
     gl.clearColor(0.95, 0.95, 0.95, 1);
@@ -67,119 +63,119 @@ function main() {
     // Tell GL to use the program
     gl.useProgram(program);
 
-    // Get location of resolution uniform, put data to it
-    const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
-    const resolution = [gl.canvas.width, gl.canvas.height];
-    gl.uniform2fv(resolutionLocation, resolution);
-
     const translation = [gl.canvas.width / 2 - 100, gl.canvas.height / 2 - 100, 0];
     const scale = [1, 1, 1];
-    const angles = [0, 0, 0];
-
-    const matLocation = gl.getUniformLocation(program, "u_matrix");
+    const angles = [0.2, 0.3, 0.1];
 
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
 
-    const draw = () => {
-        // Run animations
-        angles[0] += 0.01;
-        angles[1] += 0.01;
+    const matUniformLocation = gl.getUniformLocation(program, "u_matrix");
 
-        const pMat = M4.project(gl.canvas.width, gl.canvas.height, 400);
-        const tMat = M4.translate(translation[0], translation[1], translation[2]);
+    const draw = () => {
+        const pMat  = M4.project(gl.canvas.width, gl.canvas.height, 400);
+        const tMat  = M4.translate(translation[0], translation[1], translation[2]);
         const rMatX = M4.rotateX(angles[0]);
         const rMatY = M4.rotateY(angles[1]);
         const rMatZ = M4.rotateZ(angles[2]);
-        const sMat = M4.scale(scale[0], scale[1], scale[2]);
-        const m = M4.multiply(pMat, tMat, rMatX, rMatY, rMatZ, sMat);
+        const sMat  = M4.scale(scale[0], scale[1], scale[2]);
+        const m     = M4.multiply(pMat, tMat, rMatX, rMatY, rMatZ, sMat);
 
         // Apply transformations
-        gl.uniformMatrix4fv(matLocation, false, m);
+        gl.uniformMatrix4fv(matUniformLocation, false, m);
 
         // Clear screen
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         // Draw everything
-        gl.drawArrays(gl.TRIANGLES, 0, geometryVerts.length / 3);
+        gl.drawArrays(gl.TRIANGLES, 0, positions.length / 3);
 
+        // Request next frame
         requestAnimationFrame(draw);
     };
 
+
+    // Transformation controls
     window.addEventListener('keydown', (e) => {
-        if (e.shiftKey) {
-            const scaleDiff = 0.1;
+        // Scaling controls
+        const scaleDiff = 0.1;
 
-            if (e.key === 'ArrowUp') {
-                scale[1] += scaleDiff;
-            }
-
-            if (e.key === 'ArrowDown') {
-                scale[1] -= scaleDiff;
-            }
-
-            if (e.key === 'ArrowLeft') {
-                scale[0] -= scaleDiff;
-            }
-
-            if (e.key === 'ArrowRight') {
-                scale[0] += scaleDiff;
-            }
+        if (e.key === '+') {
+            scale[0] += scaleDiff;
+            scale[1] += scaleDiff;
+            scale[2] += scaleDiff;
         }
 
-        else {
-            const translationDiff = 20;
-            const rotationDiffDegrees = 5;
-            const rotationDiffRads = rotationDiffDegrees * Math.PI / 180;
+        if (e.key === '-') {
+            scale[0] -= scaleDiff;
+            scale[1] -= scaleDiff;
+            scale[2] -= scaleDiff;
+        }
 
-            if (e.code === 'ArrowUp') {
-                translation[1] -= translationDiff;
-            }
+        // Translation controls
+        const translationDiff = 20;
 
-            if (e.code === 'ArrowDown') {
-                translation[1] += translationDiff;
-            }
+        if (e.key === 'ArrowUp') {
+            translation[1] -= translationDiff;
+        }
 
-            if (e.code === 'ArrowLeft') {
-                translation[0] -= translationDiff;
-            }
+        if (e.key === 'ArrowDown') {
+            translation[1] += translationDiff;
+        }
 
-            if (e.code === 'ArrowRight') {
-                translation[0] += translationDiff;
-            }
+        if (e.key === 'ArrowLeft') {
+            translation[0] -= translationDiff;
+        }
 
-            if (e.code === 'Numpad8') {
-                angles[0] += rotationDiffRads;
-            }
+        if (e.key === 'ArrowRight') {
+            translation[0] += translationDiff;
+        }
 
-            if (e.code === 'Numpad2') {
-                angles[0] -= rotationDiffRads;
-            }
+        if (e.key === '1') {
+            translation[2] -= translationDiff;
+        }
 
-            if (e.code === 'Numpad4') {
-                angles[1] += rotationDiffRads;
-            }
+        if (e.key === '2') {
+            translation[2] += translationDiff;
+        }
 
-            if (e.code === 'Numpad6') {
-                angles[1] -= rotationDiffRads;
-            }
+        // Rotation controls
+        const rotationDiffDegrees = 5;
+        const rotationDiffRads = rotationDiffDegrees * Math.PI / 180;
 
-            if (e.code === 'Numpad7') {
-                angles[2] += rotationDiffRads;
-            }
+        if (e.key === 'w') {
+            angles[0] += rotationDiffRads;
+        }
 
-            if (e.code === 'Numpad1') {
-                angles[2] -= rotationDiffRads;
-            }
+        if (e.key === 's') {
+            angles[0] -= rotationDiffRads;
+        }
+
+        if (e.key === 'q') {
+            angles[1] += rotationDiffRads;
+        }
+
+        if (e.key === 'e') {
+            angles[1] -= rotationDiffRads;
+        }
+
+        if (e.key === 'a') {
+            angles[2] += rotationDiffRads;
+        }
+
+        if (e.key === 'd') {
+            angles[2] -= rotationDiffRads;
         }
     });
 
+
+    // Update canvas size on window resize
     window.addEventListener("resize", () => {
-        updateCanvasSize(canvas);
-        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-        gl.uniform2fv(resolutionLocation, resolution);
+        updateCanvasSize(gl);
     });
 
+
+    // Render all the things
     requestAnimationFrame(draw);
 }
 

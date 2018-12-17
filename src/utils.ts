@@ -30,9 +30,10 @@ export function createProgram(gl: WebGL2RenderingContext, vertShader: WebGLShade
     return program;
 }
 
-export function updateCanvasSize(canvas: HTMLCanvasElement) {
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientHeight;
+export function updateCanvasSize(gl: WebGL2RenderingContext) {
+    gl.canvas.width  = gl.canvas.clientWidth;
+    gl.canvas.height = gl.canvas.clientHeight;
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 }
 
 export function getRandomInt(range: number) {
@@ -257,12 +258,4 @@ export class M4 {
 
         return newMat;
     }
-}
-
-export function setGeometry(gl: WebGL2RenderingContext, verts: number[], x: number, y: number) {
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
-}
-
-export function setColors(gl: WebGL2RenderingContext, colors: number[]) {
-    gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(colors), gl.STATIC_DRAW);
 }
