@@ -16,6 +16,10 @@ export default {
         mainFields: ["module", "main"]
     },
 
+    watchOptions: {
+        aggregateTimeout: 20
+    },
+
     module: {
         rules: [
             {

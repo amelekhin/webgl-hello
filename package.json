@@ -2,9 +2,9 @@
     "name": "webgl-hello",
     "private": true,
     "scripts": {
-        "build": "webpack --config config/webpack.config.ts",
+        "build": "cross-env TS_NODE_PROJECT=\"config/webpack.tsconfig.json\" webpack --config config/webpack.config.ts",
         "build:release": "cross-env NODE_ENV=production npm run build",
-        "dev": "cross-env NODE_ENV=development webpack-dev-server --config config/webpack.config.ts",
+        "dev": "cross-env TS_NODE_PROJECT=\"config/webpack.tsconfig.json\" cross-env NODE_ENV=development webpack-dev-server --config config/webpack.config.ts",
         "deploy": "surge target/release webgl-hello.surge.sh"
     },
     "dependencies": {

@@ -1,4 +1,5 @@
-import { createShader, createProgram, updateCanvasSize, M4 } from "./utils";
+import { M4 } from "./lib/M4";
+import { createShader, createProgram, updateCanvasSize } from "./lib/utils";
 
 function main() {
     // Initialize canvas
