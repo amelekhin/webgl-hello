@@ -1,5 +1,5 @@
 import { M4 } from "./lib/M4";
-import { createShader, createProgram, updateCanvasSize } from "./lib/utils";
+import { createShader, createProgram, updateCanvasSize, degToRad } from "./lib/utils";
 
 function main() {
     // Initialize canvas
@@ -64,9 +64,9 @@ function main() {
     // Tell GL to use the program
     gl.useProgram(program);
 
-    const translation = [gl.canvas.width / 2 - 100, gl.canvas.height / 2 - 100, 0];
-    const scale = [1, 1, 1];
-    const angles = [0.2, 0.3, 0.1];
+    const translation = [-50, 0, -360];
+    const scale = [1.2, 1.2, 1.2];
+    const angles = [degToRad(190), degToRad(40), degToRad(30)];
 
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
@@ -74,7 +74,10 @@ function main() {
     const matUniformLocation = gl.getUniformLocation(program, "u_matrix");
 
     const draw = () => {
-        const pMat  = M4.project(gl.canvas.width, gl.canvas.height, 400);
+        angles[0] += 0.01;
+        angles[2] += 0.02;
+
+        const pMat  = M4.projectPerspective(degToRad(80), gl.canvas.clientWidth / gl.canvas.clientHeight, 1, 2000);
         const tMat  = M4.translate(translation[0], translation[1], translation[2]);
         const rMatX = M4.rotateX(angles[0]);
         const rMatY = M4.rotateY(angles[1]);
@@ -86,7 +89,7 @@ function main() {
         gl.uniformMatrix4fv(matUniformLocation, false, m);
 
         // Clear screen
-        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         // Draw everything
         gl.drawArrays(gl.TRIANGLES, 0, positions.length / 3);

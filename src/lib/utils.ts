@@ -40,3 +40,6 @@ export function getRandomInt(range: number) {
     return Math.floor(Math.random() * range);
 }
 
+export function degToRad(deg: number) {
+    return deg * Math.PI / 180;
+}
