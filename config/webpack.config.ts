@@ -4,7 +4,7 @@ import common from "./env/common";
 function getConfig() {
     const env = process.env.NODE_ENV || "development";
     let envConfig = null;
-    
+
     switch (env) {
         case "production":
             envConfig = require("./env/release").default;

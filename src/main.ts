@@ -14,11 +14,11 @@ function main() {
     }
 
     // Create vertex shader
-    const vertShaderSrc: string = require("./shaders/shader.vert");
+    const vertShaderSrc: string = require("./shaders/shader.vert").default;
     const vertShader = createShader(gl, gl.VERTEX_SHADER, vertShaderSrc);
 
     // Create fragment shader
-    const fragShaderSrc: string = require("./shaders/shader.frag");
+    const fragShaderSrc: string = require("./shaders/shader.frag").default;
     const fragShader = createShader(gl, gl.FRAGMENT_SHADER, fragShaderSrc);
 
     // Create program
@@ -66,7 +66,7 @@ function main() {
 
     const translation = [-50, 0, -360];
     const scale = [1.2, 1.2, 1.2];
-    const angles = [degToRad(190), degToRad(40), degToRad(30)];
+    const angles = [190, 40, 30].map(degToRad);
 
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
@@ -77,13 +77,13 @@ function main() {
         angles[0] += 0.01;
         angles[2] += 0.02;
 
-        const pMat  = M4.projectPerspective(degToRad(80), gl.canvas.clientWidth / gl.canvas.clientHeight, 1, 2000);
-        const tMat  = M4.translate(translation[0], translation[1], translation[2]);
-        const rMatX = M4.rotateX(angles[0]);
-        const rMatY = M4.rotateY(angles[1]);
-        const rMatZ = M4.rotateZ(angles[2]);
-        const sMat  = M4.scale(scale[0], scale[1], scale[2]);
-        const m     = M4.multiply(pMat, tMat, rMatX, rMatY, rMatZ, sMat);
+        const pMat = M4.projectPerspective(degToRad(80), gl.canvas.clientWidth / gl.canvas.clientHeight, 1, 2000);
+        const tMat = M4.translate(translation[0], translation[1], translation[2]);
+        const rxMat = M4.rotateX(angles[0]);
+        const ryMat = M4.rotateY(angles[1]);
+        const rzMat = M4.rotateZ(angles[2]);
+        const sMat = M4.scale(scale[0], scale[1], scale[2]);
+        const m = M4.multiply(pMat, tMat, rxMat, ryMat, rzMat, sMat);
 
         // Apply transformations
         gl.uniformMatrix4fv(matUniformLocation, false, m);
@@ -100,17 +100,17 @@ function main() {
 
 
     // Transformation controls
-    window.addEventListener('keydown', (e) => {
+    window.addEventListener("keydown", (e) => {
         // Scaling controls
         const scaleDiff = 0.1;
 
-        if (e.key === '+') {
+        if (e.key === "+") {
             scale[0] += scaleDiff;
             scale[1] += scaleDiff;
             scale[2] += scaleDiff;
         }
 
-        if (e.key === '-') {
+        if (e.key === "-") {
             scale[0] -= scaleDiff;
             scale[1] -= scaleDiff;
             scale[2] -= scaleDiff;
@@ -119,27 +119,27 @@ function main() {
         // Translation controls
         const translationDiff = 20;
 
-        if (e.key === 'ArrowUp') {
+        if (e.key === "ArrowUp") {
             translation[1] -= translationDiff;
         }
 
-        if (e.key === 'ArrowDown') {
+        if (e.key === "ArrowDown") {
             translation[1] += translationDiff;
         }
 
-        if (e.key === 'ArrowLeft') {
+        if (e.key === "ArrowLeft") {
             translation[0] -= translationDiff;
         }
 
-        if (e.key === 'ArrowRight') {
+        if (e.key === "ArrowRight") {
             translation[0] += translationDiff;
         }
 
-        if (e.key === '1') {
+        if (e.key === "1") {
             translation[2] -= translationDiff;
         }
 
-        if (e.key === '2') {
+        if (e.key === "2") {
             translation[2] += translationDiff;
         }
 
@@ -147,37 +147,35 @@ function main() {
         const rotationDiffDegrees = 5;
         const rotationDiffRads = rotationDiffDegrees * Math.PI / 180;
 
-        if (e.key === 'w') {
+        if (e.key === "w") {
             angles[0] += rotationDiffRads;
         }
 
-        if (e.key === 's') {
+        if (e.key === "s") {
             angles[0] -= rotationDiffRads;
         }
 
-        if (e.key === 'q') {
+        if (e.key === "q") {
             angles[1] += rotationDiffRads;
         }
 
-        if (e.key === 'e') {
+        if (e.key === "e") {
             angles[1] -= rotationDiffRads;
         }
 
-        if (e.key === 'a') {
+        if (e.key === "a") {
             angles[2] += rotationDiffRads;
         }
 
-        if (e.key === 'd') {
+        if (e.key === "d") {
             angles[2] -= rotationDiffRads;
         }
     });
-
 
     // Update canvas size on window resize
     window.addEventListener("resize", () => {
         updateCanvasSize(gl);
     });
-
 
     // Render all the things
     requestAnimationFrame(draw);

@@ -1,4 +1,4 @@
-import * as UglifyJsPlugin from "uglifyjs-webpack-plugin";
+import * as TerserPlugin from "terser-webpack-plugin";
 import * as CleanWebpackPlugin from "clean-webpack-plugin";
 import { resolve } from "path";
 
@@ -14,9 +14,10 @@ const prodConfig = {
 
     optimization: {
         minimizer: [
-            new UglifyJsPlugin({
+            new TerserPlugin({
+                parallel: true,
                 sourceMap: false,
-                uglifyOptions: {
+                terserOptions: {
                     ecma: 5,
                     warnings: false,
                     compress: {

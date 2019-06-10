@@ -1,14 +1,14 @@
 {
     "compilerOptions": {
-        "target": "es5",
-        "module": "es6",
+        "target": "esnext",
         "strict": true,
         "noEmitOnError": true,
         "experimentalDecorators": true,
         "noImplicitReturns": true,
         "emitDecoratorMetadata": true,
         "strictPropertyInitialization": false,
-        "sourceMap": true
+        "sourceMap": true,
+        "module": "esnext"
     },
     "include": [
         "src"

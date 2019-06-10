@@ -53,7 +53,14 @@ export class M4 {
         ];
     }
 
-    public static projectOrtho(left: number, right: number, bottom: number, top: number, near: number, far: number): number[] {
+    public static projectOrtho(
+        left: number,
+        right: number,
+        bottom: number,
+        top: number,
+        near: number,
+        far: number
+    ): number[] {
         return [
             2 / (right - left), 0, 0, 0,
             0, 2 / (top - bottom), 0, 0,
