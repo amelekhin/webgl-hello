@@ -30,10 +30,10 @@ export function createProgram(gl: WebGL2RenderingContext, vertShader: WebGLShade
     return program;
 }
 
-export function updateCanvasSize(gl: WebGL2RenderingContext) {
-    gl.canvas.width  = gl.canvas.clientWidth;
-    gl.canvas.height = gl.canvas.clientHeight;
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+export function updateCanvasSize(gl: WebGL2RenderingContext, canvasEl: HTMLCanvasElement) {
+    canvasEl.width = canvasEl.clientWidth;
+    canvasEl.height = canvasEl.clientHeight;
+    gl.viewport(0, 0, canvasEl.width, canvasEl.height);
 }
 
 export function getRandomInt(range: number) {

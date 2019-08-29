@@ -56,7 +56,7 @@ function main() {
     gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
 
     // Set default canvas size to full screen
-    updateCanvasSize(gl);
+    updateCanvasSize(gl, canvas);
 
     // Set clear color
     gl.clearColor(0.95, 0.95, 0.95, 1);
@@ -77,7 +77,7 @@ function main() {
         angles[0] += 0.01;
         angles[2] += 0.02;
 
-        const pMat = M4.projectPerspective(degToRad(80), gl.canvas.clientWidth / gl.canvas.clientHeight, 1, 2000);
+        const pMat = M4.projectPerspective(degToRad(80), canvas.clientWidth / canvas.clientHeight, 1, 2000);
         const tMat = M4.translate(translation[0], translation[1], translation[2]);
         const rxMat = M4.rotateX(angles[0]);
         const ryMat = M4.rotateY(angles[1]);
@@ -174,7 +174,7 @@ function main() {
 
     // Update canvas size on window resize
     window.addEventListener("resize", () => {
-        updateCanvasSize(gl);
+        updateCanvasSize(gl, canvas);
     });
 
     // Render all the things
